@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Search History — Nimbus Weather{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <header class="page-header">
+        <h1 class="page-title">Search History</h1>
+        <p class="page-subtitle">Last {{ history|length }} searches</p>
+    </header>
+
+    {% if history %}
+    <div class="history-table-wrap">
+        <table class="cities-table" aria-label="Search history log">
+            <thead>
+                <tr>
+                    <th scope="col">Query</th>
+                    <th scope="col">Matched City</th>
+                    <th scope="col">Result</th>
+                    <th scope="col">Time</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in history %}
+                <tr class="history-row {% if not item.found_result %}history-row--failed{% endif %}">
+                    <td class="query-cell">{{ item.query }}</td>
+                    <td>
+                        {% if item.city %}
+                        <a href="{% url 'weather:city_detail' item.city.id %}" class="city-table-link">
+                            {{ item.city.name }}, {{ item.city.country_code }}
+                        </a>
+                        {% else %}
+                        <span class="no-data">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="result-badge {% if item.found_result %}result-badge--success{% else %}result-badge--fail{% endif %}">
+                            {% if item.found_result %}Found{% else %}Not Found{% endif %}
+                        </span>
+                    </td>
+                    <td class="time-cell" title="{{ item.searched_at|date:'Y-m-d H:i:s' }}">
+                        {{ item.searched_at|timesince }} ago
+                    </td>
+                    <td>
+                        {% if item.city %}
+                        <a href="{% url 'weather:city_detail' item.city.id %}" class="table-action-btn">View</a>
+                        {% else %}
+                        <a href="{% url 'weather:search' %}?q={{ item.query }}" class="table-action-btn">Retry</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon" aria-hidden="true">🔍</div>
+        <h2>No Searches Yet</h2>
+        <p>Your search history will appear here once you look up a city.</p>
+        <a href="{% url 'weather:home' %}" class="btn btn--primary">Make a Search</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

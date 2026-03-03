@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load static weather_extras %}
+
+{% block title %}Nimbus — Live Weather for Any City{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero" aria-labelledby="hero-heading">
+    <div class="hero-content">
+        <h1 class="hero-heading" id="hero-heading">
+            <span class="hero-headline-line">The weather,</span>
+            <em class="hero-headline-italic">beautifully told.</em>
+        </h1>
+        <p class="hero-sub">Real-time conditions, hourly forecasts, and 5-day outlooks for any city on Earth.</p>
+
+        <!-- Search form -->
+        <form action="{% url 'weather:search' %}" method="get" class="search-form" role="search" aria-label="Search for a city">
+            <div class="search-wrap">
+                <span class="search-icon" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                </span>
+                <input
+                    type="text"
+                    name="q"
+                    id="city-search"
+                    class="search-input"
+                    placeholder="London, Tokyo, New York…"
+                    autocomplete="off"
+                    autocorrect="off"
+                    spellcheck="false"
+                    aria-label="City name"
+                    required
+                >
+                <button type="submit" class="search-btn">
+                    <span>Search</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </div>
+        </form>
+
+        <!-- Quick searches -->
+        <div class="quick-cities" aria-label="Quick search suggestions">
+            <span class="quick-label">Try:</span>
+            {% for city_name in "London,Tokyo,New York,Sydney,Paris"|split:"," %}
+            <a href="{% url 'weather:search' %}?q={{ city_name }}" class="quick-city-chip">{{ city_name }}</a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="hero-visual" aria-hidden="true">
+        <div class="hero-globe">
+            <div class="globe-ring globe-ring--1"></div>
+            <div class="globe-ring globe-ring--2"></div>
+            <div class="globe-ring globe-ring--3"></div>
+            <span class="globe-icon">🌍</span>
+        </div>
+    </div>
+</section>
+
+<!-- Favorites Section -->
+{% if favorites_weather %}
+<section class="section" aria-labelledby="favorites-heading">
+    <div class="section-header">
+        <h2 class="section-title" id="favorites-heading">
+            <span class="section-icon" aria-hidden="true">★</span> Favourites
+        </h2>
+    </div>
+    <div class="weather-grid">
+        {% for w in favorites_weather %}
+        <a href="{% url 'weather:city_detail' w.city.id %}" class="weather-card weather-card--{{ w.condition }}" aria-label="{{ w.city.name }}, {{ w.city.country_code }}: {{ w.temperature|floatformat:0 }}°C, {{ w.description }}">
+            <div class="card-header">
+                <div>
+                    <div class="card-city">{{ w.city.name }}</div>
+                    <div class="card-country">{{ w.city.country_code }}</div>
+                </div>
+                <img src="https://openweathermap.org/img/wn/{{ w.icon_code }}@2x.png" alt="{{ w.description }}" class="card-icon" width="64" height="64" loading="lazy">
+            </div>
+            <div class="card-temp">{{ w.temperature|floatformat:0 }}°<span class="card-unit">C</span></div>
+            <div class="card-desc">{{ w.description }}</div>
+            <div class="card-meta">
+                <span title="Humidity">💧 {{ w.humidity }}%</span>
+                <span title="Wind">💨 {{ w.wind_speed_kmh }} km/h</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Recent Searches -->
+{% if recent_searches %}
+<section class="section" aria-labelledby="recent-heading">
+    <div class="section-header">
+        <h2 class="section-title" id="recent-heading">
+            <span class="section-icon" aria-hidden="true">🕐</span> Recent Searches
+        </h2>
+        <a href="{% url 'weather:search_history' %}" class="section-link">View all →</a>
+    </div>
+    <div class="recent-list">
+        {% for search in recent_searches %}
+        {% if search.city %}
+        <a href="{% url 'weather:city_detail' search.city.id %}" class="recent-item">
+            <span class="recent-city">{{ search.city.name }}, {{ search.city.country_code }}</span>
+            <span class="recent-time">{{ search.searched_at|timesince }} ago</span>
+        </a>
+        {% endif %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Features -->
+<section class="section features-section" aria-labelledby="features-heading">
+    <h2 class="section-title sr-only" id="features-heading">Features</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">📡</div>
+            <h3>Live Data</h3>
+            <p>Conditions updated every 30 minutes, sourced from OpenWeatherMap's global sensor network.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">📈</div>
+            <h3>5-Day Forecasts</h3>
+            <p>Hourly breakdowns and daily summaries with precipitation probability.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">🗄️</div>
+            <h3>History Tracking</h3>
+            <p>Every search persisted to SQLite — browse historical trends and past conditions.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">⭐</div>
+            <h3>Favourites</h3>
+            <p>Pin your most-visited cities for instant access on the homepage.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

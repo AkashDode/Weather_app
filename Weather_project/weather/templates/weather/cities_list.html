@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}All Cities — Nimbus Weather{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <header class="page-header">
+        <h1 class="page-title">Tracked Cities</h1>
+        <p class="page-subtitle">{{ cities_data|length }} cit{{ cities_data|length|pluralize:"y,ies" }} in your database</p>
+    </header>
+
+    {% if cities_data %}
+    <div class="cities-table-wrap">
+        <table class="cities-table" aria-label="Tracked cities and their current weather">
+            <thead>
+                <tr>
+                    <th scope="col">City</th>
+                    <th scope="col">Country</th>
+                    <th scope="col">Temperature</th>
+                    <th scope="col">Condition</th>
+                    <th scope="col">Humidity</th>
+                    <th scope="col">Wind</th>
+                    <th scope="col">Favourite</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cities_data %}
+                <tr class="city-row {% if item.city.is_favorite %}city-row--fav{% endif %}">
+                    <td class="city-name-cell">
+                        <a href="{% url 'weather:city_detail' item.city.id %}" class="city-table-link">
+                            {{ item.city.name }}
+                        </a>
+                    </td>
+                    <td>
+                        <span class="country-badge">{{ item.city.country_code }}</span>
+                    </td>
+                    <td>
+                        {% if item.weather %}
+                        <span class="temp-cell">{{ item.weather.temperature|floatformat:0 }}°C</span>
+                        {% else %}
+                        <span class="no-data">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.weather %}
+                        <div class="condition-cell">
+                            <img src="https://openweathermap.org/img/wn/{{ item.weather.icon_code }}.png"
+                                 alt="{{ item.weather.description }}" width="32" height="32" loading="lazy">
+                            {{ item.weather.description }}
+                        </div>
+                        {% else %}
+                        <span class="no-data">No data</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.weather %}{{ item.weather.humidity }}%{% else %}<span class="no-data">—</span>{% endif %}
+                    </td>
+                    <td>
+                        {% if item.weather %}{{ item.weather.wind_speed_kmh }} km/h{% else %}<span class="no-data">—</span>{% endif %}
+                    </td>
+                    <td class="fav-cell">
+                        <form method="post" action="{% url 'weather:toggle_favorite' item.city.id %}" class="inline-form">
+                            {% csrf_token %}
+                            <button type="submit" class="fav-toggle-btn {% if item.city.is_favorite %}fav-toggle-btn--active{% endif %}"
+                                    aria-label="{% if item.city.is_favorite %}Remove {{ item.city.name }} from favourites{% else %}Add {{ item.city.name }} to favourites{% endif %}"
+                                    title="Toggle favourite">
+                                {% if item.city.is_favorite %}★{% else %}☆{% endif %}
+                            </button>
+                        </form>
+                    </td>
+                    <td>
+                        <a href="{% url 'weather:city_detail' item.city.id %}" class="table-action-btn">View</a>
+                        <a href="{% url 'weather:refresh_weather' item.city.id %}" class="table-action-btn table-action-btn--ghost">Refresh</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon" aria-hidden="true">🗺</div>
+        <h2>No Cities Yet</h2>
+        <p>Search for a city to start tracking its weather.</p>
+        <a href="{% url 'weather:home' %}" class="btn btn--primary">Search a City</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

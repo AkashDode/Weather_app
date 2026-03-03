@@ -1,0 +1,92 @@
+/* ============================================================
+   ANIMATIONS.CSS — Keyframes and animated utilities
+   ============================================================ */
+
+@keyframes float {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(20px, 30px) scale(1.05); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(24px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes ripple {
+    0%   { transform: scale(0.8); opacity: 1; }
+    100% { transform: scale(2.4); opacity: 0; }
+}
+
+@keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* ---- Entrance animations ---- */
+.fade-in {
+    animation: fadeIn var(--dur-slow) var(--ease-smooth) both;
+}
+.fade-in-1 { animation-delay: 0.05s; }
+.fade-in-2 { animation-delay: 0.10s; }
+.fade-in-3 { animation-delay: 0.15s; }
+.fade-in-4 { animation-delay: 0.20s; }
+.fade-in-5 { animation-delay: 0.25s; }
+
+/* ---- Skeleton loader ---- */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--clr-surface) 25%,
+        var(--clr-surface-hi) 50%,
+        var(--clr-surface) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease infinite;
+    border-radius: var(--radius-sm);
+}
+
+/* ---- Particle field ---- */
+.particle-field {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(79, 195, 247, 0.4);
+    animation: floatParticle var(--dur-p, 15s) linear infinite;
+    opacity: 0;
+}
+@keyframes floatParticle {
+    0%   { opacity: 0; transform: translateY(100vh) translateX(0); }
+    10%  { opacity: 0.6; }
+    90%  { opacity: 0.3; }
+    100% { opacity: 0; transform: translateY(-10vh) translateX(var(--dx, 30px)); }
+}
+
+/* ---- Globe animation ---- */
+.globe-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(79, 195, 247, 0.2);
+    animation: ripple 3s ease-out infinite;
+}
+.globe-ring--1 { width: 120%; height: 120%; top: -10%; left: -10%; animation-delay: 0s; }
+.globe-ring--2 { width: 150%; height: 150%; top: -25%; left: -25%; animation-delay: 1s; }
+.globe-ring--3 { width: 180%; height: 180%; top: -40%; left: -40%; animation-delay: 2s; }

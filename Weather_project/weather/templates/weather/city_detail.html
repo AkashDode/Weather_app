@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ city.name }}, {{ city.country_code }} — Nimbus Weather{% endblock %}
+
+{% block content %}
+<div class="detail-page">
+
+    <nav class="breadcrumb">
+        <a href="{% url 'weather:home' %}" class="bc-link">Home</a>
+        <span class="bc-sep">/</span>
+        <a href="{% url 'weather:cities_list' %}" class="bc-link">Cities</a>
+        <span class="bc-sep">/</span>
+        <span class="bc-current">{{ city.name }}</span>
+    </nav>
+
+    {% if weather %}
+
+    <!-- ═══════════ HERO CARD ═══════════ -->
+    <div class="hero-card" data-cond="{{ weather.condition }}">
+        <div class="hero-card-glow"></div>
+        <div class="hero-body">
+
+            <div class="hero-left">
+                <div class="hero-loc-row">
+                    <h1 class="hero-city">{{ city.name }}</h1>
+                    <span class="hero-cc-badge">{{ city.country_code }}</span>
+                    <span class="hero-coords">{{ city.latitude|floatformat:2 }}°N {{ city.longitude|floatformat:2 }}°E</span>
+                </div>
+
+                <div class="hero-temp-row">
+                    <span class="hero-temp" id="mainTemp">{{ weather.temperature|floatformat:0 }}°</span>
+                    <div class="unit-pills">
+                        <button class="unit-pill active" data-unit="c">°C</button>
+                        <button class="unit-pill" data-unit="f">°F</button>
+                    </div>
+                </div>
+
+                <div class="hero-feels" id="feelsLine">Feels like {{ weather.feels_like|floatformat:0 }}°</div>
+                <div class="hero-desc">{{ weather.description }}</div>
+                <div class="hero-range">
+                    <span class="hi">↑ {{ weather.temp_max|floatformat:0 }}°</span>
+                    <span class="lo">↓ {{ weather.temp_min|floatformat:0 }}°</span>
+                </div>
+                <div class="hero-updated">Last updated {{ weather.fetched_at|timesince }} ago</div>
+            </div>
+
+            <div class="hero-right">
+                <div class="hero-icon-wrap">
+                    <div class="hero-icon-halo"></div>
+                    <img
+                        src="https://openweathermap.org/img/wn/{{ weather.icon_code }}@4x.png"
+                        alt="{{ weather.description }}"
+                        class="hero-icon"
+                        width="135" height="135"
+                        onerror="this.style.display='none';document.getElementById('iconFallback').style.display='block'"
+                    >
+                    <span id="iconFallback" class="hero-icon-fallback">
+                        {% if weather.condition == 'clear' %}☀️{% elif weather.condition == 'clouds' %}☁️{% elif weather.condition == 'rain' %}🌧️{% elif weather.condition == 'thunderstorm' %}⛈️{% elif weather.condition == 'snow' %}❄️{% elif weather.condition == 'mist' %}🌫️{% else %}🌤️{% endif %}
+                    </span>
+                </div>
+                <div class="hero-icon-label">{{ weather.description }}</div>
+            </div>
+        </div>
+
+        <div class="hero-actions">
+            <form method="post" action="{% url 'weather:toggle_favorite' city.id %}" style="display:inline">
+                {% csrf_token %}
+                <button type="submit" class="act-btn {% if city.is_favorite %}fav-active{% endif %}" id="favBtn">
+                    {% if city.is_favorite %}★ Saved{% else %}☆ Save City{% endif %}
+                </button>
+            </form>
+            <a href="{% url 'weather:refresh_weather' city.id %}" class="act-btn">↻ Refresh</a>
+            <a href="{% url 'weather:api_weather' city.id %}" class="act-btn" target="_blank">⌗ JSON API</a>
+        </div>
+    </div>
+
+    <!-- ═══════════ STATS STRIP ═══════════ -->
+    <div class="stats-strip">
+
+        <div class="stat-tile">
+            <span class="stat-tile-icon">💧</span>
+            <div class="stat-tile-value">{{ weather.humidity }}<small>%</small></div>
+            <div class="stat-tile-label">Humidity</div>
+            <div class="mini-bar"><div class="mini-bar-fill" style="width:{{ weather.humidity }}%"></div></div>
+        </div>
+
+        <div class="stat-tile">
+            <span class="stat-tile-icon">🌬️</span>
+            <div class="stat-tile-value">{{ weather.wind_speed_kmh }}<small> km/h</small></div>
+            <div class="stat-tile-label">Wind Speed</div>
+            <div class="wind-dial-wrap">
+                <div class="wind-compass" style="--deg:{{ weather.wind_direction }}deg">↑</div>
+                <span class="wind-dir-label">{{ weather.wind_direction_label }}</span>
+            </div>
+        </div>
+
+        <div class="stat-tile">
+            <span class="stat-tile-icon">🌡️</span>
+            <div class="stat-tile-value">{{ weather.pressure }}<small> hPa</small></div>
+            <div class="stat-tile-label">Pressure</div>
+            <div class="stat-tile-sub">{% if weather.pressure > 1013 %}High{% elif weather.pressure < 1000 %}Low{% else %}Normal{% endif %}</div>
+        </div>
+
+        <div class="stat-tile">
+            <span class="stat-tile-icon">☁️</span>
+            <div class="stat-tile-value">{{ weather.cloud_coverage }}<small>%</small></div>
+            <div class="stat-tile-label">Cloud Cover</div>
+            <div class="mini-bar"><div class="mini-bar-fill" style="width:{{ weather.cloud_coverage }}%"></div></div>
+        </div>
+
+        {% if weather.visibility %}
+        <div class="stat-tile">
+            <span class="stat-tile-icon">👁️</span>
+            <div class="stat-tile-value">{{ weather.visibility }}<small> m</small></div>
+            <div class="stat-tile-label">Visibility</div>
+            <div class="stat-tile-sub">{% if weather.visibility >= 10000 %}Excellent{% elif weather.visibility >= 5000 %}Good{% elif weather.visibility >= 1000 %}Moderate{% else %}Poor{% endif %}</div>
+        </div>
+        {% endif %}
+
+        {% if weather.sunrise %}
+        <div class="stat-tile">
+            <span class="stat-tile-icon">🌅</span>
+            <div class="stat-tile-label">Sunrise / Sunset</div>
+            <div class="sun-row">
+                <div class="sun-item">
+                    <span class="sun-time">{{ weather.sunrise|time:"H:i" }}</span>
+                    <span class="sun-label">Rise</span>
+                </div>
+                <div class="sun-item">
+                    <span class="sun-time">{{ weather.sunset|time:"H:i" }}</span>
+                    <span class="sun-label">Set</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- ═══════════ CHART ═══════════ -->
+    {% if chart_labels %}
+    <div class="chart-card">
+        <div class="section-heading">📈 Temperature History</div>
+        <div class="chart-box"><canvas id="tempChart"></canvas></div>
+    </div>
+    {% endif %}
+
+    <!-- ═══════════ HOURLY ═══════════ -->
+    {% if forecasts.hourly %}
+    <div class="hourly-card">
+        <div class="section-heading">🕐 24-Hour Forecast</div>
+        <div class="hourly-track">
+            {% for h in forecasts.hourly %}
+            <div class="h-cell {% if forloop.first %}now{% endif %}">
+                <div class="h-time">{{ h.forecast_time|time:"H:i" }}</div>
+                <img src="https://openweathermap.org/img/wn/{{ h.icon_code }}@2x.png" alt="{{ h.description }}" class="h-icon" onerror="this.style.display='none'" loading="lazy">
+                <div class="h-temp">{{ h.temperature|floatformat:0 }}°</div>
+                <div class="h-pop">{% if h.pop > 0 %}💧 {{ h.pop|floatformat:"0" }}%{% endif %}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ═══════════ DAILY ═══════════ -->
+    {% if forecasts.daily %}
+    <div class="daily-card-wrap">
+        <div class="section-heading">📅 5-Day Forecast</div>
+        <div class="daily-grid-new">
+            {% for d in forecasts.daily %}
+            <div class="d-cell">
+                <div class="d-day">{{ d.forecast_date|date:"D" }}<br><span style="color:#6c757d;font-weight:400;text-transform:none;letter-spacing:0;font-size:.73rem">{{ d.forecast_date|date:"M j" }}</span></div>
+                <img src="https://openweathermap.org/img/wn/{{ d.icon_code }}@2x.png" alt="{{ d.description }}" class="d-icon" onerror="this.style.display='none'" loading="lazy">
+                <div class="d-desc">{{ d.description }}</div>
+                <div class="d-temps">
+                    <span class="d-hi">{{ d.temp_max|floatformat:0 }}°</span>
+                    <span class="d-lo">{{ d.temp_min|floatformat:0 }}°</span>
+                </div>
+                {% if d.pop > 0 %}<div class="d-rain">💧 {{ d.pop|floatformat:"0" }}%</div>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🌫️</div>
+        <h2>No Weather Data</h2>
+        <p>We couldn't fetch weather for {{ city.name }}. Check your API key or try refreshing.</p>
+        <a href="{% url 'weather:refresh_weather' city.id %}" class="btn btn--primary">Try Again</a>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const chartLabels = {{ chart_labels|safe }};
+const chartTemps  = {{ chart_temps|safe }};
+const tempVal     = {{ weather.temperature|floatformat:1|default:"null" }};
+const feelsVal    = {{ weather.feels_like|floatformat:1|default:"null" }};
+
+/* Chart */
+(function(){
+    const canvas=document.getElementById('tempChart');
+    if(!canvas||!chartLabels.length)return;
+    new Chart(canvas.getContext('2d'),{
+        type:'line',
+        data:{labels:chartLabels,datasets:[{
+            label:'°C',data:chartTemps,
+            borderColor:'#ff6b6b',
+            backgroundColor:ctx=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,180);g.addColorStop(0,'rgba(255,107,107,.3)');g.addColorStop(1,'rgba(255,169,77,0)');return g},
+            borderWidth:2.5,fill:true,tension:.4,
+            pointBackgroundColor:'#ffa94d',pointBorderColor:'#0f0a1e',pointBorderWidth:2,pointRadius:4,pointHoverRadius:8,
+        }]},
+        options:{
+            responsive:true,maintainAspectRatio:false,
+            interaction:{mode:'index',intersect:false},
+            plugins:{
+                legend:{display:false},
+                tooltip:{backgroundColor:'rgba(15,10,30,.95)',borderColor:'rgba(255,107,107,.35)',borderWidth:1,titleColor:'#adb5bd',bodyColor:'#f1f3f5',padding:12,callbacks:{label:c=>` ${c.parsed.y}°C`}}
+            },
+            scales:{
+                x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#6c757d',font:{size:11}}},
+                y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#6c757d',font:{size:11},callback:v=>`${v}°`}}
+            }
+        }
+    });
+})();
+
+/* Unit toggle */
+(function(){
+    if(tempVal===null)return;
+    const tEl=document.getElementById('mainTemp'),fEl=document.getElementById('feelsLine');
+    const btnC=document.querySelector('.unit-pill[data-unit="c"]'),btnF=document.querySelector('.unit-pill[data-unit="f"]');
+    if(!tEl||!btnC||!btnF)return;
+    const toF=c=>Math.round(c*9/5+32);
+    btnF.addEventListener('click',()=>{tEl.textContent=toF(tempVal)+'°';if(fEl)fEl.textContent=`Feels like ${toF(feelsVal)}°`;btnF.classList.add('active');btnC.classList.remove('active')});
+    btnC.addEventListener('click',()=>{tEl.textContent=Math.round(tempVal)+'°';if(fEl)fEl.textContent=`Feels like ${Math.round(feelsVal)}°`;btnC.classList.add('active');btnF.classList.remove('active')});
+})();
+
+/* Fav AJAX */
+(function(){
+    const btn=document.getElementById('favBtn');
+    if(!btn||!window.fetch)return;
+    btn.closest('form').addEventListener('submit',async e=>{
+        e.preventDefault();
+        try{const res=await fetch(e.target.action,{method:'POST',body:new FormData(e.target),headers:{'X-Requested-With':'XMLHttpRequest'}});if(!res.ok)throw 0;const{is_favorite:f}=await res.json();btn.textContent=f?'★ Saved':'☆ Save City';btn.classList.toggle('fav-active',f)}
+        catch{e.target.submit()}
+    });
+})();
+
+/* Stagger entrances */
+document.querySelectorAll('.stat-tile,.h-cell,.d-cell').forEach((el,i)=>{
+    el.style.opacity='0';el.style.transform='translateY(12px)';
+    setTimeout(()=>{el.style.transition='opacity .45s,transform .45s';el.style.opacity='1';el.style.transform='translateY(0)'},60+i*40);
+});
+</script>
+{% endblock %}

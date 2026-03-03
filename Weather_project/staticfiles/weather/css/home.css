@@ -1,0 +1,65 @@
+/* ============================================================
+   HOME.CSS — Hero section and home-specific styles
+   ============================================================ */
+
+/* ---- Hero ---- */
+.hero {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: var(--space-8);
+    max-width: var(--max-w);
+    margin: 0 auto;
+    padding: var(--space-16) var(--space-6) var(--space-12);
+    min-height: 52vh;
+}
+.hero-content {
+    max-width: 600px;
+    animation: fadeIn 0.7s var(--ease-smooth) both;
+}
+.hero-heading {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: var(--space-5);
+}
+.hero-headline-line { display: block; }
+.hero-headline-italic {
+    display: block;
+    font-style: italic;
+    color: var(--clr-accent);
+}
+.hero-sub {
+    font-size: 1.05rem;
+    color: var(--clr-text-muted);
+    margin-bottom: var(--space-8);
+    max-width: 480px;
+    line-height: 1.7;
+}
+
+/* Hero visual */
+.hero-visual {
+    animation: fadeIn 0.9s var(--ease-smooth) 0.2s both;
+}
+.hero-globe {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.globe-icon {
+    font-size: 5rem;
+    animation: float 8s ease-in-out infinite alternate;
+    filter: drop-shadow(0 8px 20px rgba(79,195,247,0.3));
+}
+
+@media (max-width: 640px) {
+    .hero {
+        grid-template-columns: 1fr;
+        padding-top: var(--space-10);
+    }
+    .hero-visual { display: none; }
+}
